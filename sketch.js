@@ -75,8 +75,8 @@ function draw() {
   if (hands.length > 0) {
     for (let hand of hands) {
       if (hand.confidence > 0.1) {
-        // 再次交換左右手的顏色判定，修正左右顛倒問題
-        let handColor = hand.handedness === "Left" ? color(255, 0, 255) : color(255, 255, 0);
+        // 交換左右手的顏色判定，修正左右顛倒問題
+        let handColor = hand.handedness === "Right" ? color(255, 0, 255) : color(255, 255, 0);
         
         // 定義連線群組：0-4 (大拇指), 5-8 (食指), 9-12 (中指), 13-16 (無名指), 17-20 (小拇指)
         let fingerParts = [
