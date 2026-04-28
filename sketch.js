@@ -6,6 +6,7 @@ let handPose;
 let hands = [];
 let statusMessage = "正在初始化系統...";
 let isModelLoaded = false;
+let bubbles = []; // 儲存水泡的陣列
 
 function mousePressed() {
   console.log(hands);
@@ -54,12 +55,17 @@ function windowResized() {
 function draw() {
   background('#e7c6ff');
 
-  // 顯示狀態文字
+  // 1. 將個人資訊文字移到置中上方
   fill(0);
   noStroke();
-  textSize(18);
+  textSize(24);
   textAlign(CENTER, TOP);
-  text(statusMessage, width / 2, 20);
+  text("414730795林瑜萱", width / 2, 20);
+
+  // 顯示狀態文字
+  textAlign(CENTER, TOP);
+  textSize(18);
+  text(statusMessage, width / 2, 55); // 稍微往下移，避免與姓名重疊
 
   // 計算顯示的尺寸（畫布的 50%）
   let displayW = width * 0.5;
@@ -81,8 +87,8 @@ function draw() {
   if (hands.length > 0) {
     for (let hand of hands) {
       if (hand.confidence > 0.1) {
-        // 設定連線與點的顏色（左手洋紅，右手黃色）
-        let handColor = hand.handedness === "Left" ? color(255, 0, 255) : color(255, 255, 0);
+        // 交換左右手的顏色判定
+        let handColor = hand.handedness === "Right" ? color(255, 0, 255) : color(255, 255, 0);
         
         // 定義連線群組：0-4 (大拇指), 5-8 (食指), 9-12 (中指), 13-16 (無名指), 17-20 (小拇指)
         let fingerParts = [
@@ -113,13 +119,53 @@ function draw() {
         // 2. 繪製關鍵點圓圈
         noStroke();
         fill(handColor);
-        for (let keypoint of hand.keypoints) {
+        for (let i = 0; i < hand.keypoints.length; i++) {
+          let keypoint = hand.keypoints[i];
           // 將偵測到的座標對應到縮放並置中後的影像區域
           let mappedX = map(keypoint.x, 0, video.width, offsetX, offsetX + displayW);
           let mappedY = map(keypoint.y, 0, video.height, offsetY, offsetY + displayH);
+          
           circle(mappedX, mappedY, 16);
+
+          // 3. 在 4, 8, 12, 16, 20 節點產生水泡
+          if ([4, 8, 12, 16, 20].includes(i) && frameCount % 2 === 0) {
+            bubbles.push(new Bubble(mappedX, mappedY));
+          }
         }
       }
     }
+  }
+
+  // 更新並顯示所有水泡
+  for (let i = bubbles.length - 1; i >= 0; i--) {
+    bubbles[i].update();
+    bubbles[i].display();
+    if (bubbles[i].isPopped()) {
+      bubbles.splice(i, 1);
+    }
+  }
+}
+
+// 水泡類別定義
+class Bubble {
+  constructor(x, y) {
+    this.x = x;
+    this.y = y;
+    this.size = random(8, 20);
+    this.speed = random(1, 4);
+    this.alpha = 200; // 初始透明度
+  }
+  update() {
+    this.y -= this.speed; // 往上移動
+    this.alpha -= 3;      // 逐漸變淡（模擬破掉的過程）
+  }
+  display() {
+    stroke(255, this.alpha);
+    strokeWeight(1);
+    noFill();
+    circle(this.x, this.y, this.size);
+  }
+  isPopped() {
+    return this.alpha <= 0 || this.y < 0;
   }
 }
