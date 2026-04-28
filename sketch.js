@@ -55,18 +55,6 @@ function windowResized() {
 function draw() {
   background('#e7c6ff');
 
-  // 1. 將個人資訊文字移到置中上方
-  fill(0);
-  noStroke();
-  textSize(24);
-  textAlign(CENTER, TOP);
-  text("414730795林瑜萱", width / 2, 20);
-
-  // 顯示狀態文字
-  textAlign(CENTER, TOP);
-  textSize(18);
-  text(statusMessage, width / 2, 55); // 稍微往下移，避免與姓名重疊
-
   // 計算顯示的尺寸（畫布的 50%）
   let displayW = width * 0.5;
   let displayH = height * 0.5;
@@ -87,8 +75,8 @@ function draw() {
   if (hands.length > 0) {
     for (let hand of hands) {
       if (hand.confidence > 0.1) {
-        // 交換左右手的顏色判定
-        let handColor = hand.handedness === "Right" ? color(255, 0, 255) : color(255, 255, 0);
+        // 再次交換左右手的顏色判定，修正左右顛倒問題
+        let handColor = hand.handedness === "Left" ? color(255, 0, 255) : color(255, 255, 0);
         
         // 定義連線群組：0-4 (大拇指), 5-8 (食指), 9-12 (中指), 13-16 (無名指), 17-20 (小拇指)
         let fingerParts = [
@@ -135,6 +123,19 @@ function draw() {
       }
     }
   }
+
+  // --- UI 文字區域（最後繪製以確保在最上層） ---
+  fill(0);
+  noStroke();
+  textAlign(CENTER, TOP);
+
+  // 1. 將個人資訊文字移到畫布置中上方
+  textSize(24);
+  text("414730795林瑜萱", width / 2, 20);
+
+  // 2. 顯示系統狀態文字
+  textSize(18);
+  text(statusMessage, width / 2, 55);
 
   // 更新並顯示所有水泡
   for (let i = bubbles.length - 1; i >= 0; i--) {
